@@ -33,4 +33,4 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} main
+          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} master
