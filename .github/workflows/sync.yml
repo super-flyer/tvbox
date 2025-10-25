@@ -27,7 +27,7 @@ jobs:
       - name: Merge upstream changes
         run: |
           git checkout master
-          git merge upstream/main --allow-unrelated-histories -m "🔄 Auto sync from upstream"
+          git merge upstream/master --allow-unrelated-histories -m "🔄 Auto sync from upstream"
 
       - name: Push changes
         env:
