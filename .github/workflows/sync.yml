@@ -1,9 +1,7 @@
-name: Sync Fork
-
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天 00:00 UTC 自动执行（即北京时间早上 8 点）
-  workflow_dispatch:      # 允许手动触发
+    - cron: '0 0 * * *'  # 每天 00:00 UTC（北京时间 8 点）
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -13,6 +11,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0  # 拉取完整历史，否则无法 merge
 
       - name: Setup Git
         run: |
@@ -24,13 +23,23 @@ jobs:
           git remote add upstream https://github.com/qist/tvbox.git
           git fetch upstream
 
+      - name: Detect default branches
+        id: detect
+        run: |
+          ORIGIN_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+          UPSTREAM_BRANCH=$(git remote show upstream | grep 'HEAD branch' | awk '{print $NF}')
+          echo "origin default: $ORIGIN_BRANCH"
+          echo "upstream default: $UPSTREAM_BRANCH"
+          echo "ORIGIN_BRANCH=$ORIGIN_BRANCH" >> $GITHUB_ENV
+          echo "UPSTREAM_BRANCH=$UPSTREAM_BRANCH" >> $GITHUB_ENV
+
       - name: Merge upstream changes
         run: |
-          git checkout master
-          git merge upstream/master --allow-unrelated-histories -m "🔄 Auto sync from upstream"
+          git checkout $ORIGIN_BRANCH
+          git merge upstream/$UPSTREAM_BRANCH --allow-unrelated-histories -m "🔄 Auto sync from upstream"
 
       - name: Push changes
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} master
+          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} $ORIGIN_BRANCH
