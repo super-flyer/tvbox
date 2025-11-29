@@ -39,7 +39,19 @@ jobs:
           git checkout $ORIGIN_BRANCH
           git merge upstream/$UPSTREAM_BRANCH --allow-unrelated-histories --strategy-option theirs -m "🔄 Auto sync from upstream"
 
+      - name: Remove upstream workflows (avoid GITHUB_TOKEN permission error)
+        run: |
+          # 删除所有 GitHub Actions 工作流文件（可选：只删特定文件）
+          rm -rf .github/workflows/
+          # 如果 .github 目录为空，也可以删掉整个目录（非必须）
+          # rmdir .github 2>/dev/null || true
 
+          # 检查是否有变更，如果有才提交
+          if ! git diff --quiet; then
+            git add .
+            git commit -m "🧹 Remove upstream workflows to avoid permission issues"
+          fi
+          
       - name: Push changes
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
